@@ -8,8 +8,6 @@ jobs:
       hashes: ${{ steps.hash.outputs.hashes }}
     runs-on: ubuntu-latest
     steps:
-    - name: Print ref
-      run: echo "${{ github.ref }}"
       
     - name: Checkout code
       uses: actions/checkout@v2
@@ -31,7 +29,18 @@ jobs:
         if-no-files-found: error
         retention-days: 1
   
+  check:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Build Output
+        run: echo "${{ needs.build.outputs.hashes }}"
+        
+      - name: Print ref
+        run: echo "${{ github.ref }}"
+  
   provenance:
+    needs: [build, check]
     permissions:
       actions: read # Needed for detection of GitHub Actions environment.
       id-token: write # Needed for provenance signing and ID

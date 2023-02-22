@@ -53,6 +53,8 @@ jobs:
   release:
     needs: [build, provenance]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: startswith(github.ref, 'refs/tags/')
     steps:
       - name: Download hello

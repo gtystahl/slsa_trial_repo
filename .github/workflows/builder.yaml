@@ -19,7 +19,9 @@ jobs:
     
     - name: Create Hash
       id: hash
-      run: echo "hashes=$(sha256sum hello | base64 -w0)" >> "$GITHUB_OUTPUT"
+      run: |
+        echo "hashes=$(sha256sum hello | base64 -w0)" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
     
     - name: Upload bin
       uses: actions/upload-artifact@v3.1.2

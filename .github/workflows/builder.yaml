@@ -4,9 +4,55 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
     runs-on: ubuntu-latest
     steps:
+    - name: Print ref
+      run: echo "${{ github.ref }}"
+      
     - name: Checkout code
       uses: actions/checkout@v2
+    
     - name: Build C script
       run: gcc hello.c -o hello
+    
+    - name: Create Hash
+      id: hash
+      run: echo "hashes=$(sha256sum hello | base64 -w0)" >> "$GITHUB_OUTPUT"
+    
+    - name: Upload bin
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: hello
+        path: hello
+        if-no-files-found: error
+        retention-days: 1
+  
+  provenance:
+    permissions:
+      actions: read # Needed for detection of GitHub Actions environment.
+      id-token: write # Needed for provenance signing and ID
+      contents: write # Needed for release uploads
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assests: true
+      private-repository: true
+    
+  release:
+    needs: [build, provenance]
+    runs-on: ubuntu-latest
+    if: startswith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download hello
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: hello
+      
+      - name: Upload assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            hello
+        

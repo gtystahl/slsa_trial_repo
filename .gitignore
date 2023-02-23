@@ -1,2 +1,7 @@
-hello*
-
+hello
+hello.intoto.jsonl
+*.py
+*.sh
+*.json
+*.txt
+env/
